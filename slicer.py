@@ -5,8 +5,8 @@ from PIL import Image
 a = np.array([1, 2, 3])
 
 # Printer resolution; this is machine-specific, not slice-specific!
-xres = 600  # DPI
-yres = 300  # DPI
+xres = 299.73  # DPI
+yres = 299.73  # DPI
 n_layers = 10
 layer_height = 0.018
 
@@ -32,14 +32,22 @@ def circle(x, y, loc, r):
 
 # x,y in units of mm
 def domain(x, y, z):
-    circle_location = np.array([15, 15])
-    print(f"Circle location: {circle_location}")
-    radius = 0.3
-    return circle(x, y, circle_location, radius)
+    radius = 12.7
+
+    nx = 
+
+    return circle(x, y, [15, 15], radius)
 
 for i in range(n_layers):
     z = i * layer_height
-    data =  domain(x, y, z) < 0
+
+    # Here, only a single color is used. 
+    data = 255 * (domain(x, y, z) < 0).astype(np.uint8)
+    
+    # Tiling into RGBA format. This means - for now - the file has white, opaque features on a background of (0,0,0,0) (transparent)
+    data = np.repeat(data[:,:,None],4,axis=2)
+
+    print (f"Data shape -> {data.shape}")
     im = Image.fromarray(data)
     im.save(f"outputs/slice_{i+1:02d}.png")
 
@@ -55,3 +63,5 @@ plt.ylabel("Y [mm]")
 plt.colorbar()
 plt.savefig("domain_graph.png")
 
+print(len(x_samp))
+print(len(y_samp))
