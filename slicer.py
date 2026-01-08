@@ -5,7 +5,7 @@ from PIL import Image
 # Printer resolution; this is machine-specific, not slice-specific!
 xres = 299.73  # DPI
 yres = 299.73  # DPI
-n_layers = 111
+n_layers = 100
 layer_height = 0.018
 
 # droplet size in mm, I think
@@ -35,10 +35,11 @@ base = 3
 
 # x,y in units of mm
 def domain(x, y, z):
+    # return circle(x,y,[15,15], 15)
     if z/layer_height < base:
         radius = 10
     else:
-        radius = d_size*1
+        radius = d_size*0.5
 
     # x_space = d_size * 10 # mm
     # y_space = d_size * 10 # mm
@@ -52,8 +53,8 @@ def domain(x, y, z):
     y -= y_space * ix_y
 
     cutoff = (ix_x < np.floor(bounds[0]/x_space)) * (ix_y < np.floor(bounds[1]/y_space))
-    return circle(x, y, 2*[radius], radius)
-    # return box(x, y, 2*[radius], 2*radius) * cutoff
+    # return circle(x, y, 2*[radius], radius)
+    return box(x, y, 2*[radius], 2*radius) * cutoff
 
 for i in range(n_layers):
     z = i * layer_height
