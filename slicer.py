@@ -1,14 +1,22 @@
-import numpy as np
+# in command line: python -m pip install numpy
+import numpy as np # numerical processing; arrays. 
+# python -m pip install matplotlib; this is for plotting
 import matplotlib.pyplot as plt
+
+# processes images; just for output
 from PIL import Image
 
 # Printer resolution; this is machine-specific, not slice-specific!
 xres = 299.73  # DPI
 yres = 299.73  # DPI
+
+# integer number of layers
 n_layers = 100
+
+# layer height,specific to printer [mm]
 layer_height = 0.018
 
-# droplet size in mm, I think
+# droplet size in mm
 d_size = (1/xres) * 25.4
 
 # File prefix for outputted slices.
@@ -28,6 +36,7 @@ print(f"1 Droplet = {1e3*bounds[0]/len(x_samp):0.4} um")
 
 def circle(x, y, loc, r):
     return np.sqrt((x - loc[0]) ** 2 + (y - loc[1]) ** 2) - r
+
 def box(x,y,loc,size):
     return np.maximum(x-loc[0], y-loc[1])-size/2
 
@@ -41,39 +50,38 @@ def domain(x, y, z):
     else:
         radius = d_size*0.5
 
-    # x_space = d_size * 10 # mm
-    # y_space = d_size * 10 # mm
+
     x_space = 1 # mm
     y_space = 1.5 # mm
 
+    # these following four lines repeat space with increment x_space
+
     ix_x = np.floor(x / x_space)
     ix_y = np.floor(y / y_space)
-
     x -= x_space * ix_x
     y -= y_space * ix_y
 
+
     cutoff = (ix_x < np.floor(bounds[0]/x_space)) * (ix_y < np.floor(bounds[1]/y_space))
-    # return circle(x, y, 2*[radius], radius)
+
     return box(x, y, 2*[radius], 2*radius) * cutoff
 
 for i in range(n_layers):
+
+    # current z coordinate corresponding to layer
     z = i * layer_height
 
     # Here, only a single color is used.
+    # in plain terms: output 255 wherever domain is less than 0
     data = 255 * (domain(x, y, z) < 0).astype(np.uint8)
 
-    # Tiling into RGBA format. This means - for now - the file has white, opaque features on a background of (0,0,0,0) (transparent)
-    # data = np.repeat(data[:,:,None],4,axis=2)
-
-    # Prettier colors for vis
+    # Creates a Nx3 color array
     data = np.repeat(data[:,:,None],1,axis=2)
     if i < base:
         data = np.dstack((data, ~data, ~data, 255*np.ones(data.shape[:-1], dtype=np.uint8)))
     else:
         data = np.dstack((np.uint8(0.5*data), ~data, ~data, 255*np.ones(data.shape[:-1], dtype=np.uint8)))
 
-    # print (f"Data shape -> {data.shape}")
-    # print (f"Data first element -> {data[0,0,:]}")
     im = Image.fromarray(data)
     im.save(f"outputs/slice_{i+1:03d}.png")
 
