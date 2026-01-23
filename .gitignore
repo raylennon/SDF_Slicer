@@ -1,3 +1,4 @@
 *.zip
 outputs/*.png
 3D_outputs/*.png
+3D_outputs/*.dxf
